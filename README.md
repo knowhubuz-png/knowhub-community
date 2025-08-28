@@ -1,6 +1,7 @@
 # 🌐 KnowHub Community
 
-**KnowHub Community** — bu O‘zbekiston va butun dunyo bo‘ylab dasturchilar hamjamiyatini birlashtiruvchi ochiq platforma. Maqsadimiz — bilim almashish, hamkorlikda loyihalar yaratish va yangi texnologiyalarni o‘zlashtirishni osonlashtirish.
+**KnowHub Community** — bu O‘zbekiston va butun dunyo bo‘ylab dasturchilar hamjamiyatini birlashtiruvchi ochiq platforma.  
+🎯 Maqsadimiz — bilim almashish, hamkorlikda loyihalar yaratish va yangi texnologiyalarni o‘zlashtirishni osonlashtirish.
 
 ---
 
@@ -19,25 +20,25 @@
 ## 🛠 Texnologiyalar
 
 **Backend**:
-- Laravel 12 (PHP 8+)
-- Laravel Sanctum (API autentifikatsiya)
-- MySQL / PostgreSQL
-- RESTful API arxitekturasi
+- ⚡ Laravel 12 (PHP 8+)
+- 🔑 Laravel Sanctum (API autentifikatsiya)
+- 🗄️ MySQL / PostgreSQL
+- 🌐 RESTful API arxitekturasi
 
 **Frontend**:
-- Next.js 14 (App Router)
-- TypeScript
-- Tailwind CSS
-- Axios (API chaqiriqlari uchun)
+- ⚛️ Next.js 14 (App Router)
+- 📘 TypeScript
+- 🎨 Tailwind CSS
+- 🔌 Axios (API chaqiriqlari uchun)
 
 ---
 
 ## 🚀 O‘rnatish
 
 ### Talablar
-- PHP 8.2+
+- PHP **8.2+**
 - Composer
-- Node.js 18+
+- Node.js **18+**
 - MySQL yoki PostgreSQL
 - Git
 
@@ -61,4 +62,46 @@ cd ../frontend
 cp .env.example .env
 npm install
 npm run dev
+📡 API misoli
+So‘rov:
+
+http
+Copy code
+GET /api/v1/posts?sort=trending
+Javob:
+
+json
+Copy code
+{
+  "data": [
+    {
+      "id": 1,
+      "title": "Laravel 12 yangiliklari",
+      "slug": "laravel-12-yangiliklari",
+      "tags": [
+        { "name": "Laravel", "slug": "laravel" }
+      ],
+      "score": 42
+    }
+  ],
+  "meta": {
+    "current_page": 1,
+    "last_page": 3
+  }
+}
+👥 Hissa qo‘shish
+Loyihani fork qiling.
+
+Yangi branch yarating:
+
+bash
+Copy code
+git checkout -b feature/yangi-funksionallik
+O‘zgarishlarni qo‘shing va commit qiling.
+
+Pull Request oching.
+
+📜 Litsenziya
+Bu loyiha MIT litsenziyasi asosida tarqatiladi.
+Batafsil ma’lumot uchun LICENSE faylini o‘qing.
 
