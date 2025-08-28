@@ -44,7 +44,7 @@
 
 ### O‘rnatish bosqichlari
 
-```bash
+
 # 1. Loyihani klonlash
 git clone https://github.com/knowhub-dev/knowhub-community.git
 cd knowhub-community
@@ -65,13 +65,11 @@ npm run dev
 📡 API misoli
 So‘rov:
 
-http
-Copy code
+
 GET /api/v1/posts?sort=trending
 Javob:
 
-json
-Copy code
+
 {
   "data": [
     {
@@ -94,8 +92,7 @@ Loyihani fork qiling.
 
 Yangi branch yarating:
 
-bash
-Copy code
+
 git checkout -b feature/yangi-funksionallik
 O‘zgarishlarni qo‘shing va commit qiling.
 
