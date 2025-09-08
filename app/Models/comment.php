@@ -1,39 +1,46 @@
 <?php
 
-// file: app/Models/Post.php
+// file: app/Models/Comment.php
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\MorphMany;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
-class Post extends Model
+class Comment extends Model
 {
     protected $fillable = [
-        'user_id','category_id','title','slug','content_markdown','is_ai_suggested','ai_suggestion','status','score','answers_count'
-    ];
-    protected $casts = [
-        'ai_suggestion' => 'array',
-        'is_ai_suggested' => 'boolean',
+        'post_id', 'user_id', 'parent_id', 'content_markdown', 'depth', 'score'
     ];
 
-    protected static function booted(): void
+    protected $casts = [
+        'depth' => 'integer',
+        'score' => 'integer',
+    ];
+
+    public function user(): BelongsTo
     {
-        static::creating(function (Post $post) {
-            $post->slug = $post->slug ?: Str::slug(Str::limit($post->title, 60, ''));
-        });
+        return $this->belongsTo(User::class);
     }
 
-    public function user(): BelongsTo { return $this->belongsTo(User::class); }
-    public function category(): BelongsTo { return $this->belongsTo(Category::class); }
-    public function tags(): BelongsToMany { return $this->belongsToMany(Tag::class); }
-    public function comments(): HasMany { return $this->hasMany(Comment::class)->whereNull('parent_id'); }
-    public function votes(): MorphMany { return $this->morphMany(Vote::class, 'votable'); }
+    public function post(): BelongsTo
+    {
+        return $this->belongsTo(Post::class);
+    }
+
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(Comment::class, 'parent_id');
+    }
+
+    public function children(): HasMany
+    {
+        return $this->hasMany(Comment::class, 'parent_id')->with('user', 'children');
+    }
+
+    public function votes(): MorphMany
+    {
+        return $this->morphMany(Vote::class, 'votable');
+    }
 }
-
-
-
-?>

@@ -35,20 +35,18 @@ return [
         ],
     ],
 
-];
-// file: config/services.php (qo'shimcha)
-return [
-    // ...
     'google' => [
         'client_id' => env('GOOGLE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),
         'redirect' => env('GOOGLE_REDIRECT_URI'),
     ],
+
     'github' => [
         'client_id' => env('GITHUB_CLIENT_ID'),
         'client_secret' => env('GITHUB_CLIENT_SECRET'),
         'redirect' => env('GITHUB_REDIRECT_URI'),
     ],
+
     'ai' => [
         'provider' => env('AI_PROVIDER', 'openai'),
         'openai' => [
@@ -56,6 +54,7 @@ return [
             'model' => env('OPENAI_MODEL', 'gpt-4o-mini'),
         ],
     ],
+
     'piston' => [
         'base_url' => env('PISTON_BASE_URL'),
         'timeout_ms' => env('PISTON_DEFAULT_TIMEOUT_MS', 6000),
