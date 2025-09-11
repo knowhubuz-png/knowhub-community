@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Post } from '@/types';
 import { Clock, MessageCircle, ArrowUp, User } from 'lucide-react';
+import BookmarkButton from './BookmarkButton';
 
 interface PostCardProps {
   post: Post;
@@ -90,13 +91,16 @@ export default function PostCard({ post }: PostCardProps) {
           </div>
         </div>
 
-        {/* AI Suggestion Indicator */}
-        {post.is_ai_suggested && (
-          <div className="flex items-center space-x-1 text-purple-600 text-xs">
-            <span>🤖</span>
-            <span>AI tavsiya</span>
-          </div>
-        )}
+        <div className="flex items-center space-x-2">
+          <BookmarkButton postId={post.id} />
+          {/* AI Suggestion Indicator */}
+          {post.is_ai_suggested && (
+            <div className="flex items-center space-x-1 text-purple-600 text-xs">
+              <span>🤖</span>
+              <span>AI tavsiya</span>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

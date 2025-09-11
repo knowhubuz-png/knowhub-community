@@ -11,6 +11,12 @@ use App\Http\Controllers\Api\V1\CategoryController;
 use App\Http\Controllers\Api\V1\WikiArticleController;
 use App\Http\Controllers\Api\V1\CodeRunController;
 use App\Http\Controllers\Api\V1\ProfileController;
+use App\Http\Controllers\Api\V1\SearchController;
+use App\Http\Controllers\Api\V1\NotificationController;
+use App\Http\Controllers\Api\V1\BookmarkController;
+use App\Http\Controllers\Api\V1\FollowController;
+use App\Http\Middleware\RateLimitMiddleware;
+use App\Http\Middleware\CacheMiddleware;
 
 /*
 |--------------------------------------------------------------------------
@@ -36,17 +42,23 @@ Route::prefix('v1')->group(function () {
     // ==================
     //  Public Data
     // ==================
-    Route::get('/posts', [PostController::class, 'index']);
-    Route::get('/posts/{slug}', [PostController::class, 'show']);
-    Route::get('/tags', [TagController::class, 'index']);
-    Route::get('/categories', [CategoryController::class, 'index']);
-    Route::get('/wiki', [WikiArticleController::class, 'index']);
-    Route::get('/wiki/{slug}', [WikiArticleController::class, 'show']);
+    Route::middleware([CacheMiddleware::class . ':300'])->group(function () {
+        Route::get('/posts', [PostController::class, 'index']);
+        Route::get('/posts/{slug}', [PostController::class, 'show']);
+        Route::get('/tags', [TagController::class, 'index']);
+        Route::get('/categories', [CategoryController::class, 'index']);
+        Route::get('/wiki', [WikiArticleController::class, 'index']);
+        Route::get('/wiki/{slug}', [WikiArticleController::class, 'show']);
+    });
+
+    // Search endpoints
+    Route::get('/search', [SearchController::class, 'search']);
+    Route::get('/search/suggestions', [SearchController::class, 'suggestions']);
 
     // ==================
     //  Authenticated
     // ==================
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware(['auth:sanctum', RateLimitMiddleware::class . ':api,100'])->group(function () {
         
         // Posts CRUD
         Route::post('/posts', [PostController::class, 'store']);
@@ -60,8 +72,27 @@ Route::prefix('v1')->group(function () {
         // Votes
         Route::post('/vote', [VoteController::class, 'vote']);
 
+        // Bookmarks
+        Route::get('/bookmarks', [BookmarkController::class, 'index']);
+        Route::post('/bookmarks/toggle', [BookmarkController::class, 'toggle']);
+        Route::get('/bookmarks/check/{postId}', [BookmarkController::class, 'check']);
+
+        // Follow system
+        Route::post('/follow/toggle', [FollowController::class, 'toggle']);
+        Route::get('/users/{userId}/followers', [FollowController::class, 'followers']);
+        Route::get('/users/{userId}/following', [FollowController::class, 'following']);
+        Route::get('/follow/check/{userId}', [FollowController::class, 'check']);
+
+        // Notifications
+        Route::get('/notifications', [NotificationController::class, 'index']);
+        Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+        Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
+        Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount']);
+
         // Code Execution
-        Route::post('/code-run', [CodeRunController::class, 'run']);
+        Route::middleware(RateLimitMiddleware::class . ':code-run,10')->group(function () {
+            Route::post('/code-run', [CodeRunController::class, 'run']);
+        });
 
         // Profile
         Route::get('/profile/me', [ProfileController::class, 'me']);
