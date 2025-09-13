@@ -9,6 +9,7 @@ use App\Http\Requests\PostUpdateRequest;
 use App\Http\Resources\PostResource;
 use App\Models\Post;
 use App\Models\Tag;
+use App\Models\Category;
 use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -23,20 +24,25 @@ class PostController extends Controller
         
         return Cache::remember($cacheKey, 300, function () use ($req) {
             $q = Post::query()->with(['user.level','tags','category'])
-            ->where('status','published')
-            ->when($req->get('tag'), fn($qq,$tag)=>$qq->whereHas('tags', fn($t)=>$t->where('slug',$tag)))
-            ->when($req->get('category'), fn($qq,$cat)=>$qq->whereHas('category', fn($c)=>$c->where('slug',$cat)))
-            ->when($req->get('search'), function($qq, $search) {
-                $qq->where(function($q) use ($search) {
-                    $q->where('title', 'LIKE', "%{$search}%")
-                      ->orWhere('content_markdown', 'LIKE', "%{$search}%");
-                });
-            })
-            ->when($req->get('sort') === 'latest', fn($qq) => $qq->orderByDesc('created_at'))
-            ->when($req->get('sort') === 'trending', fn($qq) => $qq->orderByDesc('score')->orderByDesc('created_at'))
-            ->orderByDesc('score')->orderByDesc('id');
+                ->where('status','published')
+                ->when($req->get('tag'), fn($qq,$tag)=>$qq->whereHas('tags', fn($t)=>$t->where('slug',$tag)))
+                ->when($req->get('category'), fn($qq,$cat)=>$qq->whereHas('category', fn($c)=>$c->where('slug',$cat)))
+                ->when($req->get('user'), fn($qq,$username)=>$qq->whereHas('user', fn($u)=>$u->where('username',$username)))
+                ->when($req->get('search'), function($qq, $search) {
+                    $qq->where(function($q) use ($search) {
+                        $q->where('title', 'LIKE', "%{$search}%")
+                          ->orWhere('content_markdown', 'LIKE', "%{$search}%")
+                          ->orWhereHas('tags', fn($t) => $t->where('name', 'LIKE', "%{$search}%"));
+                    });
+                })
+                ->when($req->get('sort') === 'latest', fn($qq) => $qq->orderByDesc('created_at'))
+                ->when($req->get('sort') === 'trending', fn($qq) => $qq->orderByDesc('score')->orderByDesc('created_at'))
+                ->when($req->get('sort') === 'popular', fn($qq) => $qq->orderByDesc('answers_count')->orderByDesc('score'))
+                ->when($req->get('sort') === 'unanswered', fn($qq) => $qq->where('answers_count', 0)->orderByDesc('created_at'))
+                ->when(!$req->get('sort'), fn($qq) => $qq->orderByDesc('score')->orderByDesc('id'));
 
-            return PostResource::collection($q->paginate(20));
+            $perPage = min((int)$req->get('per_page', 20), 50);
+            return PostResource::collection($q->paginate($perPage));
         });
     }
 
@@ -49,6 +55,70 @@ class PostController extends Controller
         });
         
         return new PostResource($post);
+    }
+
+    public function related(string $slug)
+    {
+        $post = Post::where('slug', $slug)->firstOrFail();
+        
+        $cacheKey = "post:related:{$slug}";
+        
+        $relatedPosts = Cache::remember($cacheKey, 1800, function () use ($post) {
+            $tagIds = $post->tags->pluck('id');
+            
+            return Post::with(['user.level', 'tags', 'category'])
+                ->where('status', 'published')
+                ->where('id', '!=', $post->id)
+                ->where(function ($q) use ($post, $tagIds) {
+                    // Same category
+                    if ($post->category_id) {
+                        $q->where('category_id', $post->category_id);
+                    }
+                    // Or shared tags
+                    if ($tagIds->isNotEmpty()) {
+                        $q->orWhereHas('tags', fn($t) => $t->whereIn('tags.id', $tagIds));
+                    }
+                })
+                ->orderByDesc('score')
+                ->limit(5)
+                ->get();
+        });
+        
+        return PostResource::collection($relatedPosts);
+    }
+
+    public function trending()
+    {
+        $cacheKey = 'posts:trending:weekly';
+        
+        $trendingPosts = Cache::remember($cacheKey, 600, function () {
+            return Post::with(['user.level', 'tags', 'category'])
+                ->where('status', 'published')
+                ->where('created_at', '>=', now()->subDays(7))
+                ->orderByDesc('score')
+                ->orderByDesc('answers_count')
+                ->limit(10)
+                ->get();
+        });
+        
+        return PostResource::collection($trendingPosts);
+    }
+
+    public function featured()
+    {
+        $cacheKey = 'posts:featured';
+        
+        $featuredPosts = Cache::remember($cacheKey, 3600, function () {
+            return Post::with(['user.level', 'tags', 'category'])
+                ->where('status', 'published')
+                ->where('score', '>=', 10)
+                ->where('answers_count', '>=', 3)
+                ->orderByDesc('score')
+                ->limit(5)
+                ->get();
+        });
+        
+        return PostResource::collection($featuredPosts);
     }
 
     public function store(PostStoreRequest $req)
@@ -74,7 +144,7 @@ class PostController extends Controller
         });
 
         // Clear cache
-        Cache::forget('posts:*');
+        $this->clearPostCaches();
         
         // Notify followers
         $this->notifyFollowers($post);
@@ -102,8 +172,7 @@ class PostController extends Controller
         });
 
         // Clear cache
-        Cache::forget('posts:*');
-        Cache::forget('post:' . $slug);
+        $this->clearPostCaches($slug);
 
         return new PostResource($post->fresh(['user.level','tags','category']));
     }
@@ -114,11 +183,25 @@ class PostController extends Controller
         $this->authorize('delete', $post);
         
         // Clear cache
-        Cache::forget('posts:*');
-        Cache::forget('post:' . $slug);
+        $this->clearPostCaches($slug);
         
         $post->delete();
         return response()->json(['ok'=>true]);
+    }
+
+    private function clearPostCaches($slug = null)
+    {
+        // Clear general post caches
+        Cache::tags(['posts'])->flush();
+        
+        if ($slug) {
+            Cache::forget("post:{$slug}");
+            Cache::forget("post:related:{$slug}");
+        }
+        
+        // Clear trending and featured caches
+        Cache::forget('posts:trending:weekly');
+        Cache::forget('posts:featured');
     }
 
     private function notifyFollowers(Post $post): void

@@ -8,6 +8,7 @@ use App\Http\Requests\CommentStoreRequest;
 use App\Http\Resources\CommentResource;
 use App\Models\Comment;
 use App\Models\Post;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -32,6 +33,47 @@ class CommentController extends Controller
                 'depth' => $depth,
             ]);
             $post->increment('answers_count');
+            
+            // Notify post author
+            if ($post->user_id !== $req->user()->id) {
+                Notification::create([
+                    'user_id' => $post->user_id,
+                    'type' => 'comment',
+                    'title' => 'Yangi komment',
+                    'message' => "{$req->user()->name} sizning postingizga komment qoldirdi",
+                    'data' => [
+                        'post_id' => $post->id,
+                        'post_slug' => $post->slug,
+                        'comment_id' => $comment->id,
+                        'commenter_name' => $req->user()->name
+                    ],
+                    'notifiable_id' => $comment->id,
+                    'notifiable_type' => Comment::class
+                ]);
+            }
+            
+            // Notify parent comment author
+            if (!empty($data['parent_id'])) {
+                $parent = Comment::find($data['parent_id']);
+                if ($parent && $parent->user_id !== $req->user()->id) {
+                    Notification::create([
+                        'user_id' => $parent->user_id,
+                        'type' => 'reply',
+                        'title' => 'Javob',
+                        'message' => "{$req->user()->name} sizning kommentingizga javob berdi",
+                        'data' => [
+                            'post_id' => $post->id,
+                            'post_slug' => $post->slug,
+                            'comment_id' => $comment->id,
+                            'parent_comment_id' => $parent->id,
+                            'replier_name' => $req->user()->name
+                        ],
+                        'notifiable_id' => $comment->id,
+                        'notifiable_type' => Comment::class
+                    ]);
+                }
+            }
+            
             return $comment;
         });
 
@@ -43,8 +85,37 @@ class CommentController extends Controller
     {
         $comment = Comment::findOrFail($id);
         $this->authorize('delete', $comment);
-        $comment->delete();
+        
+        DB::transaction(function () use ($comment) {
+            // Decrement post answers count
+            $comment->post->decrement('answers_count');
+            $comment->delete();
+        });
+        
         return response()->json(['ok'=>true]);
+    }
+
+    public function update(Request $req, int $id)
+    {
+        $comment = Comment::findOrFail($id);
+        $this->authorize('update', $comment);
+        
+        $data = $req->validate([
+            'content_markdown' => 'required|string'
+        ]);
+        
+        $comment->update($data);
+        $comment->load('user', 'children');
+        
+        return new CommentResource($comment);
+    }
+
+    public function show(int $id)
+    {
+        $comment = Comment::with(['user.level', 'children.user', 'post'])
+            ->findOrFail($id);
+            
+        return new CommentResource($comment);
     }
 }
 

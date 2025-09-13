@@ -33,16 +33,22 @@ export default function Navbar() {
               Postlar
             </Link>
             <Link 
+              href="/users" 
+              className="text-gray-700 hover:text-indigo-600 font-medium transition-colors"
+            >
+              Foydalanuvchilar
+            </Link>
+            <Link 
               href="/wiki" 
               className="text-gray-700 hover:text-indigo-600 font-medium transition-colors"
             >
               Wiki
             </Link>
             <Link 
-              href="/tags" 
+              href="/leaderboard" 
               className="text-gray-700 hover:text-indigo-600 font-medium transition-colors"
             >
-              Teglar
+              Reyting
             </Link>
           </div>
 
@@ -54,6 +60,12 @@ export default function Navbar() {
             {user ? (
               <>
                 <NotificationDropdown />
+                <Link
+                  href="/dashboard"
+                  className="text-gray-700 hover:text-indigo-600 font-medium transition-colors"
+                >
+                  Dashboard
+                </Link>
                 <Link
                   href="/posts/create"
                   className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
@@ -132,6 +144,13 @@ export default function Navbar() {
                   Postlar
                 </Link>
                 <Link
+                  href="/users"
+                  className="block px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Foydalanuvchilar
+                </Link>
+                <Link
                   href="/wiki"
                   className="block px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg"
                   onClick={() => setIsOpen(false)}
@@ -139,11 +158,11 @@ export default function Navbar() {
                   Wiki
                 </Link>
                 <Link
-                  href="/tags"
+                  href="/leaderboard"
                   className="block px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg"
                   onClick={() => setIsOpen(false)}
                 >
-                  Teglar
+                  Reyting
                 </Link>
               </div>
 
@@ -157,6 +176,13 @@ export default function Navbar() {
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     Post yozish
+                  </Link>
+                  <Link
+                    href="/dashboard"
+                    className="block px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Dashboard
                   </Link>
                   <Link
                     href={`/profile/${user.username}`}

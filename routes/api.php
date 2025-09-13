@@ -15,6 +15,8 @@ use App\Http\Controllers\Api\V1\SearchController;
 use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\BookmarkController;
 use App\Http\Controllers\Api\V1\FollowController;
+use App\Http\Controllers\Api\V1\UserController;
+use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Middleware\RateLimitMiddleware;
 use App\Http\Middleware\CacheMiddleware;
 
@@ -54,6 +56,24 @@ Route::prefix('v1')->group(function () {
     // Search endpoints
     Route::get('/search', [SearchController::class, 'search']);
     Route::get('/search/suggestions', [SearchController::class, 'suggestions']);
+    
+    // Users
+    Route::get('/users', [UserController::class, 'index']);
+    Route::get('/users/{username}', [UserController::class, 'show']);
+    Route::get('/users/leaderboard', [UserController::class, 'leaderboard']);
+    Route::get('/users/{username}/stats', [UserController::class, 'stats']);
+    
+    // Posts - additional endpoints
+    Route::get('/posts/{slug}/related', [PostController::class, 'related']);
+    Route::get('/posts/trending', [PostController::class, 'trending']);
+    Route::get('/posts/featured', [PostController::class, 'featured']);
+    
+    // Tags - additional endpoints
+    Route::get('/tags/{slug}', [TagController::class, 'show']);
+    Route::get('/tags/trending', [TagController::class, 'trending']);
+    
+    // Categories - additional endpoints
+    Route::get('/categories/{slug}', [CategoryController::class, 'show']);
 
     // ==================
     //  Authenticated
@@ -67,10 +87,13 @@ Route::prefix('v1')->group(function () {
 
         // Comments
         Route::post('/posts/{slug}/comments', [CommentController::class, 'store']);
+        Route::get('/comments/{id}', [CommentController::class, 'show']);
+        Route::put('/comments/{id}', [CommentController::class, 'update']);
         Route::delete('/comments/{id}', [CommentController::class, 'destroy']);
 
         // Votes
         Route::post('/vote', [VoteController::class, 'vote']);
+        Route::get('/vote/{type}/{id}', [VoteController::class, 'getVote']);
 
         // Bookmarks
         Route::get('/bookmarks', [BookmarkController::class, 'index']);
@@ -97,6 +120,12 @@ Route::prefix('v1')->group(function () {
         // Profile
         Route::get('/profile/me', [ProfileController::class, 'me']);
         Route::put('/profile', [ProfileController::class, 'update']);
+        
+        // Dashboard
+        Route::get('/dashboard/stats', [DashboardController::class, 'stats']);
+        Route::get('/dashboard/activity', [DashboardController::class, 'activity']);
+        Route::get('/dashboard/trending', [DashboardController::class, 'trending']);
+        Route::get('/dashboard/analytics', [DashboardController::class, 'analytics']);
 
         // Wiki (PR-like oqim)
         Route::post('/wiki', [WikiArticleController::class, 'store']);

@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import { Post } from '@/types';
-import { Clock, MessageCircle, ArrowUp, User } from 'lucide-react';
+import { Clock, MessageCircle, User } from 'lucide-react';
 import BookmarkButton from './BookmarkButton';
+import VoteButtons from './VoteButtons';
 
 interface PostCardProps {
   post: Post;
@@ -81,10 +82,7 @@ export default function PostCard({ post }: PostCardProps) {
       {/* Footer Stats */}
       <div className="flex items-center justify-between pt-4 border-t border-gray-100">
         <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-1 text-gray-500">
-            <ArrowUp className="w-4 h-4" />
-            <span className="text-sm font-medium">{post.score}</span>
-          </div>
+          <VoteButtons type="post" id={post.id} score={post.score} />
           <div className="flex items-center space-x-1 text-gray-500">
             <MessageCircle className="w-4 h-4" />
             <span className="text-sm">{post.answers_count}</span>
