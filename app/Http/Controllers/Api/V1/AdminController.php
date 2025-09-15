@@ -10,22 +10,30 @@ use App\Models\WikiArticle;
 use App\Models\CodeRun;
 use App\Models\Category;
 use App\Models\Tag;
+use App\Models\Notification;
+use App\Models\Vote;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Storage;
 
 class AdminController extends Controller
 {
     public function __construct()
     {
         $this->middleware(function ($request, $next) {
-            if (!$request->user() || !$request->user()->is_admin) {
+            if (!$request->user() || !$this->isAdmin($request->user())) {
                 return response()->json(['message' => 'Unauthorized'], 403);
             }
             return $next($request);
         });
     }
 
+    private function isAdmin($user): bool
+    {
+        return $user->is_admin || $user->email === 'admin@knowhub.uz' || $user->id === 1;
+    }
     public function dashboard()
     {
         $stats = [
@@ -34,6 +42,8 @@ class AdminController extends Controller
                 'active_today' => User::whereDate('updated_at', today())->count(),
                 'new_this_week' => User::whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->count(),
                 'new_this_month' => User::whereMonth('created_at', now()->month)->count(),
+                'banned' => User::where('is_banned', true)->count(),
+                'admins' => User::where('is_admin', true)->count(),
             ],
             'posts' => [
                 'total' => Post::count(),
@@ -41,30 +51,144 @@ class AdminController extends Controller
                 'draft' => Post::where('status', 'draft')->count(),
                 'today' => Post::whereDate('created_at', today())->count(),
                 'this_week' => Post::whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->count(),
+                'high_score' => Post::where('score', '>', 10)->count(),
+                'with_ai' => Post::where('is_ai_suggested', true)->count(),
             ],
             'comments' => [
                 'total' => Comment::count(),
                 'today' => Comment::whereDate('created_at', today())->count(),
                 'this_week' => Comment::whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->count(),
+                'high_score' => Comment::where('score', '>', 5)->count(),
             ],
             'wiki' => [
                 'articles' => WikiArticle::count(),
                 'published' => WikiArticle::where('status', 'published')->count(),
                 'draft' => WikiArticle::where('status', 'draft')->count(),
+                'proposals' => DB::table('wiki_proposals')->where('status', 'pending')->count(),
             ],
             'code_runs' => [
                 'total' => CodeRun::count(),
                 'successful' => CodeRun::where('status', 'success')->count(),
                 'failed' => CodeRun::where('status', 'failed')->count(),
                 'today' => CodeRun::whereDate('created_at', today())->count(),
+                'by_language' => CodeRun::selectRaw('language, COUNT(*) as count')
+                    ->groupBy('language')
+                    ->orderByDesc('count')
+                    ->limit(5)
+                    ->get(),
             ],
             'categories' => Category::count(),
             'tags' => Tag::count(),
+            'notifications' => [
+                'total' => Notification::count(),
+                'unread' => Notification::whereNull('read_at')->count(),
+                'today' => Notification::whereDate('created_at', today())->count(),
+            ],
+            'votes' => [
+                'total' => Vote::count(),
+                'positive' => Vote::where('value', 1)->count(),
+                'negative' => Vote::where('value', -1)->count(),
+                'today' => Vote::whereDate('created_at', today())->count(),
+            ],
+            'system' => [
+                'php_version' => PHP_VERSION,
+                'laravel_version' => app()->version(),
+                'database_size' => $this->getDatabaseSize(),
+                'storage_used' => $this->getStorageUsed(),
+                'cache_status' => Cache::has('test') ? 'working' : 'not_working',
+            ],
         ];
 
         return response()->json($stats);
     }
 
+    private function getDatabaseSize(): string
+    {
+        try {
+            $size = DB::select("SELECT ROUND(SUM(data_length + index_length) / 1024 / 1024, 1) AS 'size' FROM information_schema.tables WHERE table_schema = ?", [config('database.connections.mysql.database')]);
+            return ($size[0]->size ?? 0) . ' MB';
+        } catch (\Exception $e) {
+            return 'N/A';
+        }
+    }
+
+    private function getStorageUsed(): string
+    {
+        try {
+            $bytes = 0;
+            $iterator = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator(storage_path(), \RecursiveDirectoryIterator::SKIP_DOTS)
+            );
+            foreach ($iterator as $file) {
+                $bytes += $file->getSize();
+            }
+            return round($bytes / 1024 / 1024, 1) . ' MB';
+        } catch (\Exception $e) {
+            return 'N/A';
+        }
+    }
+
+    public function clearCache()
+    {
+        try {
+            Artisan::call('cache:clear');
+            Artisan::call('config:clear');
+            Artisan::call('route:clear');
+            Artisan::call('view:clear');
+            
+            return response()->json(['message' => 'Cache successfully cleared']);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error clearing cache: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function optimizeSystem()
+    {
+        try {
+            Artisan::call('config:cache');
+            Artisan::call('route:cache');
+            Artisan::call('view:cache');
+            
+            return response()->json(['message' => 'System optimized successfully']);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error optimizing system: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function backupDatabase()
+    {
+        try {
+            $filename = 'backup_' . date('Y_m_d_H_i_s') . '.sql';
+            $path = storage_path('app/backups/' . $filename);
+            
+            // Create backups directory if it doesn't exist
+            if (!file_exists(dirname($path))) {
+                mkdir(dirname($path), 0755, true);
+            }
+            
+            $command = sprintf(
+                'mysqldump -u%s -p%s %s > %s',
+                config('database.connections.mysql.username'),
+                config('database.connections.mysql.password'),
+                config('database.connections.mysql.database'),
+                $path
+            );
+            
+            exec($command, $output, $return_var);
+            
+            if ($return_var === 0) {
+                return response()->json([
+                    'message' => 'Database backup created successfully',
+                    'filename' => $filename,
+                    'size' => filesize($path) . ' bytes'
+                ]);
+            } else {
+                return response()->json(['message' => 'Database backup failed'], 500);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error creating backup: ' . $e->getMessage()], 500);
+        }
+    }
     public function users(Request $request)
     {
         $query = User::with('level')

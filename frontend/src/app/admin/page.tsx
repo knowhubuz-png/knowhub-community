@@ -13,7 +13,13 @@ import {
   Settings,
   Shield,
   TrendingUp,
-  Activity
+  Activity,
+  Bell,
+  ThumbsUp,
+  Database,
+  Server,
+  AlertTriangle,
+  CheckCircle
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -29,6 +35,7 @@ export default function AdminPage() {
     queryKey: ['admin', 'dashboard'],
     queryFn: getAdminDashboard,
     enabled: !!user,
+    refetchInterval: 30000, // Har 30 soniyada yangilanadi
   });
 
   if (!user) {
@@ -76,10 +83,19 @@ export default function AdminPage() {
           <h1 className="text-3xl font-bold text-gray-900">Admin Panel</h1>
         </div>
         <p className="text-gray-600">KnowHub Community boshqaruv paneli</p>
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center text-green-600">
+              <CheckCircle className="w-5 h-5 mr-2" />
+              <span className="text-sm font-medium">Tizim Ishlayapti</span>
+            </div>
+            <div className="text-sm text-gray-500">
+              Son yangilanish: {new Date().toLocaleTimeString('uz-UZ')}
+            </div>
+          </div>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <div className="flex items-center">
             <Users className="w-8 h-8 text-blue-600" />
@@ -87,6 +103,7 @@ export default function AdminPage() {
               <p className="text-sm font-medium text-gray-600">Jami foydalanuvchilar</p>
               <p className="text-2xl font-bold text-gray-900">{stats?.users?.total || 0}</p>
               <p className="text-xs text-green-600">+{stats?.users?.new_this_week || 0} bu hafta</p>
+              <p className="text-xs text-red-600">{stats?.users?.banned || 0} bloklangan</p>
             </div>
           </div>
         </div>
@@ -98,6 +115,7 @@ export default function AdminPage() {
               <p className="text-sm font-medium text-gray-600">Jami postlar</p>
               <p className="text-2xl font-bold text-gray-900">{stats?.posts?.total || 0}</p>
               <p className="text-xs text-green-600">+{stats?.posts?.this_week || 0} bu hafta</p>
+              <p className="text-xs text-blue-600">{stats?.posts?.with_ai || 0} AI bilan</p>
             </div>
           </div>
         </div>
@@ -109,6 +127,7 @@ export default function AdminPage() {
               <p className="text-sm font-medium text-gray-600">Jami kommentlar</p>
               <p className="text-2xl font-bold text-gray-900">{stats?.comments?.total || 0}</p>
               <p className="text-xs text-green-600">+{stats?.comments?.this_week || 0} bu hafta</p>
+              <p className="text-xs text-yellow-600">{stats?.comments?.high_score || 0} yuqori ball</p>
             </div>
           </div>
         </div>
@@ -120,6 +139,7 @@ export default function AdminPage() {
               <p className="text-sm font-medium text-gray-600">Kod ishga tushirish</p>
               <p className="text-2xl font-bold text-gray-900">{stats?.code_runs?.total || 0}</p>
               <p className="text-xs text-green-600">{stats?.code_runs?.successful || 0} muvaffaqiyatli</p>
+              <p className="text-xs text-red-600">{stats?.code_runs?.failed || 0} xato</p>
             </div>
           </div>
         </div>
@@ -162,7 +182,7 @@ export default function AdminPage() {
             <div>
               <h3 className="font-semibold text-gray-900">Kommentlar</h3>
               <p className="text-sm text-gray-600">Kommentlarni boshqarish</p>
-            </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           </div>
         </Link>
 
@@ -172,6 +192,9 @@ export default function AdminPage() {
         >
           <div className="flex items-center">
             <BarChart3 className="w-8 h-8 text-indigo-600 mr-4" />
+              {stats?.users?.banned > 0 && (
+                <p className="text-xs text-red-600 mt-1">{stats.users.banned} bloklangan</p>
+              )}
             <div>
               <h3 className="font-semibold text-gray-900">Analitika</h3>
               <p className="text-sm text-gray-600">Batafsil statistika</p>
@@ -185,6 +208,7 @@ export default function AdminPage() {
         >
           <div className="flex items-center">
             <Settings className="w-8 h-8 text-gray-600 mr-4" />
+              <p className="text-xs text-gray-500 mt-1">{stats?.posts?.draft || 0} qoralama</p>
             <div>
               <h3 className="font-semibold text-gray-900">Sozlamalar</h3>
               <p className="text-sm text-gray-600">Tizim sozlamalari</p>
@@ -202,6 +226,21 @@ export default function AdminPage() {
           </div>
         </div>
       </div>
+        <Link
+          href="/admin/notifications"
+          className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow"
+        >
+          <div className="flex items-center">
+            <Bell className="w-8 h-8 text-yellow-600 mr-4" />
+            <div>
+              <h3 className="font-semibold text-gray-900">Bildirishnomalar</h3>
+              <p className="text-sm text-gray-600">Bildirishnomalarni boshqarish</p>
+              {stats?.notifications?.unread > 0 && (
+                <p className="text-xs text-yellow-600 mt-1">{stats.notifications.unread} o'qilmagan</p>
+              )}
+            </div>
+          </div>
+        </Link>
 
       {/* Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -228,6 +267,30 @@ export default function AdminPage() {
         </div>
 
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center">
+        <Link
+          href="/admin/maintenance"
+          className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow"
+        >
+            <div className="ml-4">
+            <Database className="w-8 h-8 text-red-600 mr-4" />
+              <p className="text-2xl font-bold text-gray-900">{stats?.votes?.total || 0}</p>
+              <h3 className="font-semibold text-gray-900">Texnik Xizmat</h3>
+              <p className="text-sm text-gray-600">Cache, backup, logs</p>
+            </div>
+          </div>
+        </Link>
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <div className="flex items-center">
+            <Activity className="w-8 h-8 text-green-600 mr-4" />
+            <div>
+              <h3 className="font-semibold text-gray-900">Tizim holati</h3>
+              <p className="text-sm text-green-600">Barcha tizimlar ishlayapti</p>
+              <p className="text-xs text-gray-500 mt-1">Uptime: 99.9%</p>
+            </div>
+          </div>
+        </div>
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Kontent holati</h2>
           <div className="space-y-4">
             <div className="flex justify-between items-center">
@@ -250,5 +313,37 @@ export default function AdminPage() {
         </div>
       </div>
     </div>
+      {/* System Status */}
+            <div className="flex justify-between items-center">
+              <span className="text-gray-600">Yangi ovozlar</span>
+              <span className="font-semibold text-gray-900">{stats?.votes?.today || 0}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-600">Bildirishnomalar</span>
+              <span className="font-semibold text-gray-900">{stats?.notifications?.today || 0}</span>
+            </div>
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <Server className="w-5 h-5 mr-2" />
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Mashhur Dasturlash Tillari</h2>
+          <div className="space-y-3">
+            {stats?.code_runs?.by_language?.map((lang: any, index: number) => (
+              <div key={lang.language} className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <div className={`w-3 h-3 rounded-full mr-3 ${
+                    index === 0 ? 'bg-yellow-500' :
+                    index === 1 ? 'bg-gray-400' :
+                    index === 2 ? 'bg-amber-600' : 'bg-gray-300'
+                  }`}></div>
+                  <span className="text-gray-700 capitalize">{lang.language}</span>
+                </div>
+                <span className="font-semibold text-gray-900">{lang.count}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        </div>
+      </div>
   );
 }

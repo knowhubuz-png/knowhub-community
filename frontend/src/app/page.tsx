@@ -9,7 +9,7 @@ import { TrendingUp, Users, BookOpen, Code, Award, MessageCircle } from 'lucide-
 
 async function getTrendingPosts() {
   try {
-    const res = await api.get('/posts?sort=trending&limit=6');
+    const res = await api.get('/posts?sort=trending&per_page=6');
     return res.data;
   } catch (error) {
     console.error('Error fetching trending posts:', error);
@@ -19,7 +19,7 @@ async function getTrendingPosts() {
 
 async function getStats() {
   try {
-    const res = await api.get('/dashboard/stats');
+    const res = await api.get('/stats/public');
     return res.data;
   } catch (error) {
     console.error('Error fetching stats:', error);

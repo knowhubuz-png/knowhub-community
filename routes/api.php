@@ -44,6 +44,8 @@ Route::prefix('v1')->group(function () {
     // ==================
     //  Public Data
     // ==================
+    Route::get('/stats/public', [App\Http\Controllers\Api\V1\StatsController::class, 'public']);
+    
     Route::middleware([CacheMiddleware::class . ':300'])->group(function () {
         Route::get('/posts', [PostController::class, 'index']);
         Route::get('/posts/{slug}', [PostController::class, 'show']);
@@ -139,6 +141,11 @@ Route::prefix('v1')->group(function () {
             Route::delete('/comments/{commentId}', [App\Http\Controllers\Api\V1\AdminController::class, 'deleteComment']);
             Route::get('/settings', [App\Http\Controllers\Api\V1\AdminController::class, 'systemSettings']);
             Route::put('/settings', [App\Http\Controllers\Api\V1\AdminController::class, 'updateSystemSettings']);
+            
+            // System maintenance
+            Route::post('/cache/clear', [App\Http\Controllers\Api\V1\AdminController::class, 'clearCache']);
+            Route::post('/system/optimize', [App\Http\Controllers\Api\V1\AdminController::class, 'optimizeSystem']);
+            Route::post('/database/backup', [App\Http\Controllers\Api\V1\AdminController::class, 'backupDatabase']);
         });
 
         // Wiki (PR-like oqim)
