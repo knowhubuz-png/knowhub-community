@@ -127,6 +127,20 @@ Route::prefix('v1')->group(function () {
         Route::get('/dashboard/trending', [DashboardController::class, 'trending']);
         Route::get('/dashboard/analytics', [DashboardController::class, 'analytics']);
 
+        // Admin routes
+        Route::prefix('admin')->group(function () {
+            Route::get('/dashboard', [App\Http\Controllers\Api\V1\AdminController::class, 'dashboard']);
+            Route::get('/users', [App\Http\Controllers\Api\V1\AdminController::class, 'users']);
+            Route::get('/posts', [App\Http\Controllers\Api\V1\AdminController::class, 'posts']);
+            Route::get('/comments', [App\Http\Controllers\Api\V1\AdminController::class, 'comments']);
+            Route::get('/analytics', [App\Http\Controllers\Api\V1\AdminController::class, 'analytics']);
+            Route::put('/users/{userId}/status', [App\Http\Controllers\Api\V1\AdminController::class, 'updateUserStatus']);
+            Route::delete('/posts/{postId}', [App\Http\Controllers\Api\V1\AdminController::class, 'deletePost']);
+            Route::delete('/comments/{commentId}', [App\Http\Controllers\Api\V1\AdminController::class, 'deleteComment']);
+            Route::get('/settings', [App\Http\Controllers\Api\V1\AdminController::class, 'systemSettings']);
+            Route::put('/settings', [App\Http\Controllers\Api\V1\AdminController::class, 'updateSystemSettings']);
+        });
+
         // Wiki (PR-like oqim)
         Route::post('/wiki', [WikiArticleController::class, 'store']);
         Route::post('/wiki/{slug}/propose', [WikiArticleController::class, 'proposeEdit']);

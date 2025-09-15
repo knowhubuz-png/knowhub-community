@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { QueryProvider } from "@/providers/QueryProvider";
 
@@ -37,13 +38,7 @@ export default function RootLayout({
               <main className="flex-1">
                 {children}
               </main>
-              <footer className="bg-white border-t border-gray-200 py-8 mt-12">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                  <div className="text-center text-gray-600">
-                    <p>&copy; 2025 KnowHub Community. Barcha huquqlar himoyalangan.</p>
-                  </div>
-                </div>
-              </footer>
+              <Footer />
             </div>
           </AuthProvider>
         </QueryProvider>

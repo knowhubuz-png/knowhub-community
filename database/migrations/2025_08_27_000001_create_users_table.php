@@ -19,6 +19,9 @@ return new class extends Migration {
             $table->integer('xp')->default(0);
             $table->unsignedBigInteger('level_id')->nullable();
             $table->text('bio')->nullable();
+            $table->boolean('is_admin')->default(false);
+            $table->boolean('is_banned')->default(false);
+            $table->text('ban_reason')->nullable();
             $table->timestamps();
         });
     }
