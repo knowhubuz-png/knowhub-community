@@ -1,4 +1,9 @@
 # 🌐 KnowHub Community
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)]()
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)]()
+[![Contributors](https://img.shields.io/github/contributors/knowhub-dev/knowhub-community.svg)]()
+[![Issues](https://img.shields.io/github/issues/knowhub-dev/knowhub-community.svg)]()
+[![Stars](https://img.shields.io/github/stars/knowhub-dev/knowhub-community.svg?style=social)]()
 
 KnowHub Community — bu O'zbekiston va butun dunyo bo'ylab dasturchilar hamjamiyatini birlashtiruvchi ochiq platforma.  
 🎯 Maqsadimiz — bilim almashish, hamkorlikda loyihalar yaratish va yangi texnologiyalarni o'zlashtirishni osonlashtirish.
