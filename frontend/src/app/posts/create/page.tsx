@@ -70,70 +70,135 @@ export default function CreatePostPage() {
   const categories = categoriesData?.data || [];
   const tags = tagsData?.data || [];
 
-  // TinyMCE ni dinamik yuklash
+  // TinyMCE ni CDN orqali yuklash
   useEffect(() => {
     if (typeof window !== 'undefined' && !editorLoaded) {
-      // TypeScript uchun window obyektiga tinymce ni qo'shamiz
-      (window as any).tinymce = (window as any).tinymce || {};
-
-      const loadTinyMCE = async () => {
-        try {
-          // TinyMCE ni CDN dan yuklash
-          const script = document.createElement('script');
-          script.src = 'https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js';
-          script.referrerPolicy = 'origin';
-          script.onload = () => {
-            setEditorLoaded(true);
-            initTinyMCE();
-          };
-          document.head.appendChild(script);
-        } catch (error) {
-          console.error('TinyMCE yuklashda xatolik:', error);
-        }
-      };
-
-      const initTinyMCE = () => {
-        const tinymce = (window as any).tinymce;
-        if (tinymce) {
-          tinymce.init({
-            selector: '#content-editor',
-            height: 500,
-            menubar: true,
-            plugins: [
-              'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
-              'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-              'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
-            ],
-            toolbar: 'undo redo | blocks | ' +
-              'bold italic forecolor | alignleft aligncenter ' +
-              'alignright alignjustify | bullist numlist outdent indent | ' +
-              'removeformat | help',
-            content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, San Francisco, Segoe UI, Roboto, Helvetica Neue, sans-serif; font-size: 14px }',
-            setup: (editor: any) => {
-              editor.on('init', () => {
-                editorRef.current = editor;
-              });
-              editor.on('change', () => {
-                setContent(editor.getContent());
-              });
-              editor.on('keyup', () => {
-                setContent(editor.getContent());
-              });
-            }
-          });
-        }
-      };
-
       loadTinyMCE();
     }
 
     return () => {
-      const tinymce = (window as any).tinymce;
-      if (tinymce) {
-        tinymce.remove('#content-editor');
+      if (editorRef.current) {
+        try {
+          editorRef.current.destroy();
+        } catch (e) {
+          console.log('Editor destroy error:', e);
+        }
+        editorRef.current = null;
       }
     };
   }, [editorLoaded]);
+
+  const loadTinyMCE = () => {
+    // Avval TinyMCE borligini tekshiramiz
+    if ((window as any).tinymce) {
+      setEditorLoaded(true);
+      initTinyMCE();
+      return;
+    }
+
+    // TinyMCE CDN scriptini yuklash
+    const script = document.createElement('script');
+    script.src = 'https://cdn.tiny.cloud/1/7jeodnxvqql23jg3bvhd4wngy1whtmk1b5nvidip1aestxh9ushbu/tinymce/6/tinymce.min.js';
+    script.referrerPolicy = 'origin';
+    script.async = true;
+    
+    script.onload = () => {
+      console.log('TinyMCE loaded successfully');
+      setEditorLoaded(true);
+      setTimeout(() => initTinyMCE(), 100); // Kichik kechikish bilan ishga tushiramiz
+    };
+    
+    script.onerror = () => {
+      console.error('TinyMCE CDN yuklashda xatolik yuz berdi');
+      // Fallback: alternative CDN
+      const fallbackScript = document.createElement('script');
+      fallbackScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.2/tinymce.min.js';
+      fallbackScript.onload = () => {
+        console.log('TinyMCE loaded from fallback CDN');
+        setEditorLoaded(true);
+        setTimeout(() => initTinyMCE(), 100);
+      };
+      fallbackScript.onerror = () => {
+        console.error('TinyMCE fallback CDN ham yuklanmadi');
+        setEditorLoaded(true); // Xatolik holatida ham loaded deb belgilaymiz
+      };
+      document.head.appendChild(fallbackScript);
+    };
+    
+    document.head.appendChild(script);
+  };
+
+  const initTinyMCE = () => {
+    if (typeof window === 'undefined' || !(window as any).tinymce) {
+      console.log('TinyMCE not available yet');
+      return;
+    }
+
+    const tinymce = (window as any).tinymce;
+    
+    try {
+      // Agar editor allaqachon mavjud bo'lsa, uni o'chirib tashlaymiz
+      if (editorRef.current) {
+        try {
+          editorRef.current.destroy();
+        } catch (e) {
+          console.log('Editor destroy error:', e);
+        }
+        editorRef.current = null;
+      }
+
+      // Eski editorlarni tozalash
+      tinymce.remove('#content-editor');
+
+      // TinyMCE CSS ni qo'shish
+      if (!document.querySelector('link[href*="tinymce/skins/ui/oxide/skin.min.css"]')) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://cdn.tiny.cloud/1/no-api-key/tinymce/6/skins/ui/oxide/skin.min.css';
+        document.head.appendChild(link);
+      }
+
+      tinymce.init({
+        selector: '#content-editor',
+        height: 500,
+        menubar: true,
+        plugins: [
+          'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+          'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+          'insertdatetime', 'media', 'table', 'help', 'wordcount'
+        ],
+        toolbar: 'undo redo | blocks | ' +
+          'bold italic forecolor | alignleft aligncenter ' +
+          'alignright alignjustify | bullist numlist outdent indent | ' +
+          'removeformat | help',
+        content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, San Francisco, Segoe UI, Roboto, Helvetica Neue, sans-serif; font-size: 14px }',
+        setup: (editor: any) => {
+          editorRef.current = editor;
+          editor.on('init', () => {
+            console.log('TinyMCE editor initialized');
+            // Agar oldindan content bo'lsa, uni editorga qo'yamiz
+            if (content) {
+              editor.setContent(content);
+            }
+          });
+          editor.on('change', () => {
+            setContent(editor.getContent());
+          });
+          editor.on('keyup', () => {
+            setContent(editor.getContent());
+          });
+          editor.on('NodeChange', () => {
+            setContent(editor.getContent());
+          });
+          editor.on('SetContent', () => {
+            setContent(editor.getContent());
+          });
+        }
+      });
+    } catch (error) {
+      console.error('TinyMCE initialization error:', error);
+    }
+  };
 
   const handleTagToggle = (tagName: string) => {
     setSelectedTags(prev => 

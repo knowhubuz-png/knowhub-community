@@ -1,14 +1,34 @@
 'use client';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
-import { Menu, X, User, LogOut, Plus, Search } from 'lucide-react';
+import { Menu, X, User, LogOut, Plus, Search, ChevronDown } from 'lucide-react';
 import SearchBar from './SearchBar';
 import NotificationDropdown from './NotificationDropdown';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const profileRef = useRef<HTMLDivElement>(null);
   const { user, logout } = useAuth();
+
+  // Profile dropdown ni tashqariga bosilganda yopish
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+        setIsProfileOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const handleProfileToggle = () => {
+    setIsProfileOpen(!isProfileOpen);
+  };
 
   return (
     <nav className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
@@ -73,31 +93,42 @@ export default function Navbar() {
                   <Plus className="w-4 h-4 mr-2" />
                   Post yozish
                 </Link>
-                <div className="relative group">
-                  <button className="flex items-center space-x-2 text-gray-700 hover:text-indigo-600">
+                <div className="relative" ref={profileRef}>
+                  <button 
+                    onClick={handleProfileToggle}
+                    className="flex items-center space-x-2 text-gray-700 hover:text-indigo-600 focus:outline-none"
+                  >
                     <img
                       src={user.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}`}
                       alt={user.name}
                       className="w-8 h-8 rounded-full"
                     />
                     <span className="font-medium">{user.name}</span>
+                    <ChevronDown className={`w-4 h-4 transition-transform ${isProfileOpen ? 'rotate-180' : ''}`} />
                   </button>
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
-                    <Link
-                      href={`/profile/${user.username}`}
-                      className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50"
-                    >
-                      <User className="w-4 h-4 mr-2" />
-                      Profil
-                    </Link>
-                    <button
-                      onClick={logout}
-                      className="flex items-center w-full px-4 py-2 text-gray-700 hover:bg-gray-50"
-                    >
-                      <LogOut className="w-4 h-4 mr-2" />
-                      Chiqish
-                    </button>
-                  </div>
+                  
+                  {isProfileOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                      <Link
+                        href={`/profile/${user.username}`}
+                        className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
+                        onClick={() => setIsProfileOpen(false)}
+                      >
+                        <User className="w-4 h-4 mr-2" />
+                        Profil
+                      </Link>
+                      <button
+                        onClick={() => {
+                          logout();
+                          setIsProfileOpen(false);
+                        }}
+                        className="flex items-center w-full px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
+                      >
+                        <LogOut className="w-4 h-4 mr-2" />
+                        Chiqish
+                      </button>
+                    </div>
+                  )}
                 </div>
               </>
             ) : (
