@@ -41,14 +41,16 @@ async function getUserPosts(username: string): Promise<UserPost[]> {
   return res.data;
 }
 
-export default async function ProfilePage({ params }: { params: { username: string } }) {
+export default async function ProfilePage({ params }: { params: Promise<{ username: string }> }) {
+  const { username } = await params; // ✅ params ni await qilib oldik
+
   let user: UserProfile;
   let posts: UserPost[];
 
   try {
     [user, posts] = await Promise.all([
-      getUser(params.username),
-      getUserPosts(params.username)
+      getUser(username),
+      getUserPosts(username)
     ]);
   } catch (error: any) {
     if (error.response?.status === 404) {
