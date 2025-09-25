@@ -98,7 +98,7 @@ export default function CreatePostPage() {
 
     // TinyMCE CDN scriptini yuklash
     const script = document.createElement('script');
-    script.src = 'https://cdn.tiny.cloud/1/7jeodnxvqql23jg3bvhd4wngy1whtmk1b5nvidip1aestxh9ushbu/tinymce/6/tinymce.min.js';
+    script.src = `https://cdn.tiny.cloud/1/${process.env.NEXT_PUBLIC_TINYMCE_API_KEY}/tinymce/6/tinymce.min.js`;
     script.referrerPolicy = 'origin';
     script.async = true;
     
@@ -154,7 +154,7 @@ export default function CreatePostPage() {
       if (!document.querySelector('link[href*="tinymce/skins/ui/oxide/skin.min.css"]')) {
         const link = document.createElement('link');
         link.rel = 'stylesheet';
-        link.href = 'https://cdn.tiny.cloud/1/no-api-key/tinymce/6/skins/ui/oxide/skin.min.css';
+        link.href = `https://cdn.tiny.cloud/1/${process.env.NEXT_PUBLIC_TINYMCE_API_KEY}/tinymce/6/skins/ui/oxide/skin.min.css`;
         document.head.appendChild(link);
       }
 
@@ -165,12 +165,12 @@ export default function CreatePostPage() {
         plugins: [
           'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
           'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-          'insertdatetime', 'media', 'table', 'help', 'wordcount'
+          'insertdatetime', 'media', 'table', 'help', 'wordcount', 'codesample'
         ],
         toolbar: 'undo redo | blocks | ' +
           'bold italic forecolor | alignleft aligncenter ' +
           'alignright alignjustify | bullist numlist outdent indent | ' +
-          'removeformat | help',
+          'removeformat | codesample | help',
         content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, San Francisco, Segoe UI, Roboto, Helvetica Neue, sans-serif; font-size: 14px }',
         setup: (editor: any) => {
           editorRef.current = editor;
@@ -182,15 +182,6 @@ export default function CreatePostPage() {
             }
           });
           editor.on('change', () => {
-            setContent(editor.getContent());
-          });
-          editor.on('keyup', () => {
-            setContent(editor.getContent());
-          });
-          editor.on('NodeChange', () => {
-            setContent(editor.getContent());
-          });
-          editor.on('SetContent', () => {
             setContent(editor.getContent());
           });
         }

@@ -14,6 +14,10 @@ class UserResource extends JsonResource
             'username' => $this->username,
             'avatar_url' => $this->avatar_url,
             'bio' => $this->bio,
+            'website_url' => $this->website_url,
+            'github_url' => $this->github_url,
+            'linkedin_url' => $this->linkedin_url,
+            'resume' => $this->when($this->whenLoaded('resume'), $this->resume),
             'xp' => $this->xp,
             'level' => $this->level?->only(['id', 'name', 'min_xp', 'icon']),
             'badges' => $this->whenLoaded('badges', function () {

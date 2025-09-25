@@ -19,6 +19,10 @@ return new class extends Migration {
             $table->integer('xp')->default(0);
             $table->unsignedBigInteger('level_id')->nullable();
             $table->text('bio')->nullable();
+            $table->string('website_url')->nullable();
+            $table->string('github_url')->nullable();
+            $table->string('linkedin_url')->nullable();
+            $table->text('resume')->nullable();
             $table->boolean('is_admin')->default(false);
             $table->boolean('is_banned')->default(false);
             $table->text('ban_reason')->nullable();

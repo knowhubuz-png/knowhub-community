@@ -6,6 +6,16 @@ export interface User {
   avatar_url?: string;
   xp: number;
   bio?: string;
+  stats?: {
+    posts_count?: number;
+    followers_count?: number;
+    following_count?: number;
+  };
+  badges?: {
+    id: number;
+    name: string;
+    icon_url?: string;
+  }[];
   level?: {
     id: number;
     name: string;

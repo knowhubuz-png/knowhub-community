@@ -12,13 +12,17 @@ class ProfileController extends Controller
     public function update(Request $req)
     {
         $data = $req->validate([
-            'name'=>'sometimes|string|max:100',
-            'avatar_url'=>'sometimes|url',
-            'bio'=>'sometimes|string|max:500'
+            'name' => 'sometimes|string|max:100',
+            'avatar_url' => 'sometimes|url',
+            'bio' => 'sometimes|string|max:500',
+            'website_url' => 'nullable|url|max:255',
+            'github_url' => 'nullable|url|max:255',
+            'linkedin_url' => 'nullable|url|max:255',
+            'resume' => 'nullable|string|max:5000',
         ]);
         $user = $req->user();
         $user->fill($data)->save();
-        return $user->only(['id','name','username','avatar_url','xp','bio']);
+        return new \App\Http\Resources\UserResource($user);
     }
 }
 

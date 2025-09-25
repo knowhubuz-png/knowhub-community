@@ -190,4 +190,43 @@ export default function AdminPage() {
               <p className="text-xs text-green-600">+{stats?.comments.new_today || 0} bugun</p>
             </div>
             <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-              <MessageSquare className="
+              <MessageSquare className="w-6 h-6 text-purple-600" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto py-10 px-4">
+        <div className="mb-8 flex items-center justify-between">
+          <h1 className="text-3xl font-bold text-gray-900">Admin Panel</h1>
+        </div>
+        <div className="mb-8 flex space-x-4 overflow-x-auto">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              className={`flex items-center px-4 py-2 rounded-lg font-medium transition-colors ${activeTab === tab.id ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-100'}`}
+              onClick={() => setActiveTab(tab.id)}
+            >
+              <tab.icon className="w-5 h-5 mr-2" />
+              {tab.name}
+            </button>
+          ))}
+        </div>
+        <div>
+          {loading && activeTab === 'dashboard' ? (
+            <LoadingSpinner />
+          ) : activeTab === 'dashboard' ? (
+            renderDashboard()
+          ) : (
+            <div className="text-gray-500">Boshqa bo'limlar hali ishlab chiqilmoqda.</div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+

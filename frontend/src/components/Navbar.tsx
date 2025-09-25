@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
-import { Menu, X, User, LogOut, Plus, Search, ChevronDown } from 'lucide-react';
+import { Menu, X, User, LogOut, Plus, Search, ChevronDown, Settings } from 'lucide-react';
 import SearchBar from './SearchBar';
 import NotificationDropdown from './NotificationDropdown';
 
@@ -117,6 +117,14 @@ export default function Navbar() {
                         <User className="w-4 h-4 mr-2" />
                         Profil
                       </Link>
+                      <Link
+                        href="/settings/profile"
+                        className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
+                        onClick={() => setIsProfileOpen(false)}
+                      >
+                        <Settings className="w-4 h-4 mr-2" />
+                        Sozlamalar
+                      </Link>
                       <button
                         onClick={() => {
                           logout();
@@ -226,6 +234,14 @@ export default function Navbar() {
                       className="w-6 h-6 rounded-full mr-2"
                     />
                     {user.name}
+                  </Link>
+                  <Link
+                    href="/settings/profile"
+                    className="flex items-center px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <Settings className="w-4 h-4 mr-2" />
+                    Sozlamalar
                   </Link>
                   <button
                     onClick={() => {

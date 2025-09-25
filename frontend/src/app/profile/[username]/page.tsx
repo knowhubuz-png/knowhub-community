@@ -32,12 +32,12 @@ interface UserPost {
 }
 
 async function getUser(username: string): Promise<UserProfile> {
-  const res = await api.get(`/api/v1/users/${username}`);
+  const res = await api.get(`/users/${username}`);
   return res.data;
 }
 
 async function getUserPosts(username: string): Promise<UserPost[]> {
-  const res = await api.get(`/api/v1/users/${username}/posts`);
+  const res = await api.get(`/users/${username}/posts`);
   return res.data;
 }
 
