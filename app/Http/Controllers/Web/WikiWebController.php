@@ -18,5 +18,29 @@ class WikiWebController extends Controller
         $article = WikiArticle::where('slug',$slug)->firstOrFail();
         return view('wiki.show', compact('article'));
     }
+
+    public function create()
+    {
+        return view('wiki.create');
+    }
+
+    public function store(Request $request)
+    {
+        $data = $request->validate([
+            'title' => 'required|string|max:180',
+            'content_markdown' => 'required|string',
+        ]);
+
+        $article = WikiArticle::create([
+            'title' => $data['title'],
+            'content_markdown' => $data['content_markdown'],
+            'status' => 'published',
+            'created_by' => auth()->id(),
+            'updated_by' => auth()->id(),
+        ]);
+
+        return redirect()->route('wiki.show', $article->slug)
+            ->with('success', 'Wiki maqola muvaffaqiyatli yaratildi!');
+    }
 }
 

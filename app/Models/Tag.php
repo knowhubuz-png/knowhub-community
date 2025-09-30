@@ -19,6 +19,16 @@ class Tag extends Model
     }
 
     public function posts(): BelongsToMany { return $this->belongsToMany(Post::class); }
+
+    public function scopePopular($query)
+    {
+        return $query->withCount(['posts' => function ($q) {
+            $q->where('status', 'published')
+              ->where('created_at', '>=', now()->subDays(30));
+        }])
+        ->having('posts_count', '>', 0)
+        ->orderByDesc('posts_count');
+    }
 }
 
 

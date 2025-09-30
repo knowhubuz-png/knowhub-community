@@ -58,5 +58,23 @@ class Post extends Model
     {
         return $this->morphMany(Vote::class, 'votable');
     }
+
+    public function scopePublished($query)
+    {
+        return $query->where('status', 'published');
+    }
+
+    public function scopeTrending($query)
+    {
+        return $query->where('created_at', '>=', now()->subDays(7))
+                    ->orderByDesc('score')
+                    ->orderByDesc('answers_count');
+    }
+
+    public function scopePopular($query)
+    {
+        return $query->orderByDesc('answers_count')
+                    ->orderByDesc('score');
+    }
 }
 

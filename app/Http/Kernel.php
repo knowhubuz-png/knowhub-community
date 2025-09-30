@@ -56,5 +56,6 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'rate.limit' => \App\Http\Middleware\RateLimitMiddleware::class,
         'cache' => \App\Http\Middleware\CacheMiddleware::class,
+        'admin' => \App\Http\Middleware\AdminMiddleware::class,
     ];
 }

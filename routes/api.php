@@ -26,7 +26,7 @@ Route::prefix('v1')->group(function () {
 
     // Public Data
     Route::get('/stats/public', [StatsController::class, 'public']);
-    Route::get('/home', [\App\Http\Controllers\Api\V1\HomeController::class, 'index']);
+    Route::get('/stats/homepage', [StatsController::class, 'homepage']);
 
     Route::middleware([CacheMiddleware::class . ':300'])->group(function () {
         Route::get('/posts', [PostController::class, 'index']);
@@ -113,6 +113,9 @@ Route::prefix('v1')->group(function () {
             Route::get('/users', [AdminController::class, 'users']);
             Route::get('/posts', [AdminController::class, 'posts']);
             Route::get('/comments', [AdminController::class, 'comments']);
+            Route::get('/reports', [AdminController::class, 'reports']);
+            Route::get('/logs', [AdminController::class, 'logs']);
+            Route::get('/activity', [AdminController::class, 'activity']);
             Route::get('/analytics', [AdminController::class, 'analytics']);
             Route::put('/users/{userId}/status', [AdminController::class, 'updateUserStatus']);
             Route::delete('/posts/{postId}', [AdminController::class, 'deletePost']);
