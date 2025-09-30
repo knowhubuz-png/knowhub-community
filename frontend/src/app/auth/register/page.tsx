@@ -51,7 +51,7 @@ export default function RegisterPage() {
           <h2 className="text-3xl font-bold text-gray-900">Yangi hisob yarating</h2>
           <p className="mt-2 text-gray-600">
             Yoki{' '}
-            <Link href="/auth/login" className="text-indigo-600 hover:text-indigo-500">
+            <Link href="/login" className="text-indigo-600 hover:text-indigo-500">
               mavjud hisobingizga kiring
             </Link>
           </p>

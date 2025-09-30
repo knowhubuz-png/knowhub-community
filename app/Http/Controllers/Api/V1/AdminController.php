@@ -44,6 +44,8 @@ class AdminController extends Controller
                 'new_this_month' => User::whereMonth('created_at', now()->month)->count(),
                 'banned' => User::where('is_banned', true)->count(),
                 'admins' => User::where('is_admin', true)->count(),
+                'online_now' => User::where('updated_at', '>=', now()->subMinutes(5))->count(),
+                'verified' => User::whereNotNull('email_verified_at')->count(),
             ],
             'posts' => [
                 'total' => Post::count(),
@@ -53,18 +55,22 @@ class AdminController extends Controller
                 'this_week' => Post::whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->count(),
                 'high_score' => Post::where('score', '>', 10)->count(),
                 'with_ai' => Post::where('is_ai_suggested', true)->count(),
+                'trending' => Post::where('created_at', '>=', now()->subDays(7))->where('score', '>', 5)->count(),
+                'unanswered' => Post::where('answers_count', 0)->where('created_at', '>=', now()->subDays(7))->count(),
             ],
             'comments' => [
                 'total' => Comment::count(),
                 'today' => Comment::whereDate('created_at', today())->count(),
                 'this_week' => Comment::whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->count(),
                 'high_score' => Comment::where('score', '>', 5)->count(),
+                'pending_moderation' => Comment::where('status', 'pending')->count(),
             ],
             'wiki' => [
                 'articles' => WikiArticle::count(),
                 'published' => WikiArticle::where('status', 'published')->count(),
                 'draft' => WikiArticle::where('status', 'draft')->count(),
                 'proposals' => DB::table('wiki_proposals')->where('status', 'pending')->count(),
+                'recent_edits' => WikiArticle::where('updated_at', '>=', now()->subDays(7))->count(),
             ],
             'code_runs' => [
                 'total' => CodeRun::count(),
@@ -76,6 +82,7 @@ class AdminController extends Controller
                     ->orderByDesc('count')
                     ->limit(5)
                     ->get(),
+                'avg_runtime' => CodeRun::where('status', 'success')->avg('runtime_ms'),
             ],
             'categories' => Category::count(),
             'tags' => Tag::count(),
@@ -83,12 +90,17 @@ class AdminController extends Controller
                 'total' => Notification::count(),
                 'unread' => Notification::whereNull('read_at')->count(),
                 'today' => Notification::whereDate('created_at', today())->count(),
+                'by_type' => Notification::selectRaw('type, COUNT(*) as count')
+                    ->groupBy('type')
+                    ->orderByDesc('count')
+                    ->get(),
             ],
             'votes' => [
                 'total' => Vote::count(),
                 'positive' => Vote::where('value', 1)->count(),
                 'negative' => Vote::where('value', -1)->count(),
                 'today' => Vote::whereDate('created_at', today())->count(),
+                'engagement_rate' => $this->calculateEngagementRate(),
             ],
             'system' => [
                 'php_version' => PHP_VERSION,
@@ -96,10 +108,214 @@ class AdminController extends Controller
                 'database_size' => $this->getDatabaseSize(),
                 'storage_used' => $this->getStorageUsed(),
                 'cache_status' => Cache::has('test') ? 'working' : 'not_working',
+                'queue_jobs' => DB::table('jobs')->count(),
+                'failed_jobs' => DB::table('failed_jobs')->count(),
+                'uptime' => $this->getUptime(),
+            ],
+            'security' => [
+                'failed_logins_today' => $this->getFailedLoginsToday(),
+                'blocked_ips' => $this->getBlockedIPs(),
+                'suspicious_activity' => $this->getSuspiciousActivity(),
+            ],
+            'performance' => [
+                'avg_response_time' => $this->getAverageResponseTime(),
+                'slow_queries' => $this->getSlowQueries(),
+                'cache_hit_rate' => $this->getCacheHitRate(),
             ],
         ];
 
         return response()->json($stats);
+    }
+
+    private function calculateEngagementRate()
+    {
+        $totalPosts = Post::where('status', 'published')->count();
+        $totalVotes = Vote::count();
+        
+        return $totalPosts > 0 ? round(($totalVotes / $totalPosts) * 100, 2) : 0;
+    }
+
+    private function getUptime()
+    {
+        try {
+            $uptime = shell_exec('uptime -p');
+            return trim($uptime) ?: 'N/A';
+        } catch (\Exception $e) {
+            return 'N/A';
+        }
+    }
+
+    private function getFailedLoginsToday()
+    {
+        // Bu yerda failed login attempts logini saqlash kerak
+        return 0; // Placeholder
+    }
+
+    private function getBlockedIPs()
+    {
+        // Bu yerda blocked IP addresses logini saqlash kerak
+        return 0; // Placeholder
+    }
+
+    private function getSuspiciousActivity()
+    {
+        // Bu yerda suspicious activity logini saqlash kerak
+        return 0; // Placeholder
+    }
+
+    private function getAverageResponseTime()
+    {
+        // Bu yerda response time metrics saqlash kerak
+        return '120ms'; // Placeholder
+    }
+
+    private function getSlowQueries()
+    {
+        try {
+            $slowQueries = DB::select("SHOW GLOBAL STATUS LIKE 'Slow_queries'");
+            return $slowQueries[0]->Value ?? 0;
+        } catch (\Exception $e) {
+            return 0;
+        }
+    }
+
+    private function getCacheHitRate()
+    {
+        // Bu yerda cache hit rate metrics saqlash kerak
+        return '85%'; // Placeholder
+    }
+
+    public function users(Request $request)
+    {
+        $query = User::with('level')
+            ->withCount(['posts', 'comments', 'followers', 'following']);
+
+        if ($search = $request->get('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'LIKE', "%{$search}%")
+                  ->orWhere('username', 'LIKE', "%{$search}%")
+                  ->orWhere('email', 'LIKE', "%{$search}%");
+            });
+        }
+
+        if ($status = $request->get('status')) {
+            switch ($status) {
+                case 'active':
+                    $query->where('updated_at', '>=', now()->subDays(7));
+                    break;
+                case 'inactive':
+                    $query->where('updated_at', '<', now()->subDays(30));
+                    break;
+                case 'new':
+                    $query->where('created_at', '>=', now()->subDays(7));
+                    break;
+                case 'banned':
+                    $query->where('is_banned', true);
+                    break;
+                case 'admin':
+                    $query->where('is_admin', true);
+                    break;
+            }
+        }
+
+        $users = $query->latest()->paginate(20);
+        
+        return response()->json($users);
+    }
+
+    public function posts(Request $request)
+    {
+        $query = Post::with(['user', 'category', 'tags'])
+            ->withCount(['comments', 'votes']);
+
+        if ($search = $request->get('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'LIKE', "%{$search}%")
+                  ->orWhere('content_markdown', 'LIKE', "%{$search}%");
+            });
+        }
+
+        if ($status = $request->get('status')) {
+            $query->where('status', $status);
+        }
+
+        if ($category = $request->get('category')) {
+            $query->where('category_id', $category);
+        }
+
+        if ($request->get('ai_suggested')) {
+            $query->where('is_ai_suggested', true);
+        }
+
+        if ($request->get('high_score')) {
+            $query->where('score', '>', 10);
+        }
+
+        $posts = $query->latest()->paginate(20);
+        
+        return response()->json($posts);
+    }
+
+    public function comments(Request $request)
+    {
+        $query = Comment::with(['user', 'post'])
+            ->withCount('votes');
+
+        if ($search = $request->get('search')) {
+            $query->where('content_markdown', 'LIKE', "%{$search}%");
+        }
+
+        if ($postId = $request->get('post_id')) {
+            $query->where('post_id', $postId);
+        }
+
+        if ($request->get('high_score')) {
+            $query->where('score', '>', 5);
+        }
+
+        $comments = $query->latest()->paginate(20);
+        
+        return response()->json($comments);
+    }
+
+    public function reports(Request $request)
+    {
+        // Bu yerda report system bo'lishi kerak
+        // Hozircha placeholder
+        return response()->json([
+            'data' => [],
+            'total' => 0,
+            'pending' => 0,
+            'resolved' => 0,
+        ]);
+    }
+
+    public function logs(Request $request)
+    {
+        try {
+            $logFile = storage_path('logs/laravel.log');
+            if (!file_exists($logFile)) {
+                return response()->json(['data' => []]);
+            }
+
+            $logs = [];
+            $lines = array_slice(file($logFile), -100); // So'nggi 100 ta log
+            
+            foreach ($lines as $line) {
+                if (preg_match('/\[(.*?)\] (\w+)\.(\w+): (.*)/', $line, $matches)) {
+                    $logs[] = [
+                        'timestamp' => $matches[1],
+                        'level' => $matches[2],
+                        'context' => $matches[3],
+                        'message' => $matches[4],
+                    ];
+                }
+            }
+
+            return response()->json(['data' => array_reverse($logs)]);
+        } catch (\Exception $e) {
+            return response()->json(['data' => [], 'error' => 'Log faylini o\'qib bo\'lmadi']);
+        }
     }
 
     private function getDatabaseSize(): string

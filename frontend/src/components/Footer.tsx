@@ -86,18 +86,23 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/bookmarks" className="text-gray-300 hover:text-white transition-colors">
-                  Saqlangan Postlar
+                <Link href="/wiki" className="text-gray-300 hover:text-white transition-colors">
+                  Wiki
+                </Link>
+              </li>
+              <li>
+                <Link href="/categories" className="text-gray-300 hover:text-white transition-colors">
+                  Kategoriyalar
+                </Link>
+              </li>
+              <li>
+                <Link href="/tags" className="text-gray-300 hover:text-white transition-colors">
+                  Teglar
                 </Link>
               </li>
               <li>
                 <Link href="/leaderboard" className="text-gray-300 hover:text-white transition-colors">
                   Reyting Jadvali
-                </Link>
-              </li>
-              <li>
-                <Link href="/notifications" className="text-gray-300 hover:text-white transition-colors">
-                  Bildirishnomalar
                 </Link>
               </li>
             </ul>
@@ -135,6 +140,16 @@ export default function Footer() {
               <li>
                 <Link href="/api-docs" className="text-gray-300 hover:text-white transition-colors">
                   API Hujjatlari
+                </Link>
+              </li>
+              <li>
+                <Link href="/blog" className="text-gray-300 hover:text-white transition-colors">
+                  Blog
+                </Link>
+              </li>
+              <li>
+                <Link href="/changelog" className="text-gray-300 hover:text-white transition-colors">
+                  O'zgarishlar
                 </Link>
               </li>
             </ul>

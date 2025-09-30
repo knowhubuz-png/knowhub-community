@@ -155,13 +155,14 @@ export default function AdminPage() {
   const renderDashboard = () => (
     <div className="space-y-6">
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Jami Foydalanuvchilar</p>
               <p className="text-2xl font-bold text-gray-900">{stats?.users.total || 0}</p>
-              <p className="text-xs text-green-600">+{stats?.users.new_today || 0} bugun</p>
+              <p className="text-xs text-green-600">+{stats?.users.new_this_week || 0} bu hafta</p>
+              <p className="text-xs text-blue-600">{stats?.users.online_now || 0} online</p>
             </div>
             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
               <Users className="w-6 h-6 text-blue-600" />
@@ -174,7 +175,8 @@ export default function AdminPage() {
             <div>
               <p className="text-sm font-medium text-gray-600">Jami Postlar</p>
               <p className="text-2xl font-bold text-gray-900">{stats?.posts.total || 0}</p>
-              <p className="text-xs text-green-600">+{stats?.posts.new_today || 0} bugun</p>
+              <p className="text-xs text-green-600">+{stats?.posts.today || 0} bugun</p>
+              <p className="text-xs text-orange-600">{stats?.posts.trending || 0} trend</p>
             </div>
             <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
               <FileText className="w-6 h-6 text-green-600" />
@@ -187,12 +189,148 @@ export default function AdminPage() {
             <div>
               <p className="text-sm font-medium text-gray-600">Kommentlar</p>
               <p className="text-2xl font-bold text-gray-900">{stats?.comments.total || 0}</p>
-              <p className="text-xs text-green-600">+{stats?.comments.new_today || 0} bugun</p>
+              <p className="text-xs text-green-600">+{stats?.comments.today || 0} bugun</p>
+              <p className="text-xs text-red-600">{stats?.comments.pending_moderation || 0} kutilmoqda</p>
             </div>
             <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
               <MessageSquare className="w-6 h-6 text-purple-600" />
             </div>
           </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Wiki Maqolalar</p>
+              <p className="text-2xl font-bold text-gray-900">{stats?.wiki.articles || 0}</p>
+              <p className="text-xs text-green-600">{stats?.wiki.published || 0} nashr</p>
+              <p className="text-xs text-blue-600">{stats?.wiki.proposals || 0} taklif</p>
+            </div>
+            <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+              <BookOpen className="w-6 h-6 text-yellow-600" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Kod Ishga Tushirish</p>
+              <p className="text-2xl font-bold text-gray-900">{stats?.code_runs.total || 0}</p>
+              <p className="text-xs text-green-600">{stats?.code_runs.successful || 0} muvaffaq</p>
+              <p className="text-xs text-gray-600">{stats?.code_runs.avg_runtime || 0}ms o'rtacha</p>
+            </div>
+            <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
+              <Code className="w-6 h-6 text-indigo-600" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Performance Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">🚀 Performance</h3>
+          <div className="space-y-3">
+            <div className="flex justify-between">
+              <span className="text-gray-600">O'rtacha javob vaqti:</span>
+              <span className="font-medium">{stats?.performance?.avg_response_time || 'N/A'}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Cache hit rate:</span>
+              <span className="font-medium text-green-600">{stats?.performance?.cache_hit_rate || 'N/A'}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Sekin so'rovlar:</span>
+              <span className="font-medium">{stats?.performance?.slow_queries || 0}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">🔒 Xavfsizlik</h3>
+          <div className="space-y-3">
+            <div className="flex justify-between">
+              <span className="text-gray-600">Muvaffaqiyatsiz kirishlar:</span>
+              <span className="font-medium">{stats?.security?.failed_logins_today || 0}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Bloklangan IP:</span>
+              <span className="font-medium">{stats?.security?.blocked_ips || 0}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Shubhali faoliyat:</span>
+              <span className="font-medium">{stats?.security?.suspicious_activity || 0}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">⚙️ Tizim</h3>
+          <div className="space-y-3">
+            <div className="flex justify-between">
+              <span className="text-gray-600">Queue jobs:</span>
+              <span className="font-medium">{stats?.system?.queue_jobs || 0}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Failed jobs:</span>
+              <span className="font-medium text-red-600">{stats?.system?.failed_jobs || 0}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Uptime:</span>
+              <span className="font-medium text-green-600">{stats?.system?.uptime || 'N/A'}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">🛠️ Tezkor Harakatlar</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <button
+            onClick={() => {
+              fetch('/api/v1/admin/cache/clear', { method: 'POST' })
+                .then(() => alert('Cache tozalandi'))
+                .catch(() => alert('Xatolik yuz berdi'));
+            }}
+            className="flex flex-col items-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+          >
+            <Database className="w-8 h-8 text-blue-600 mb-2" />
+            <span className="text-sm font-medium text-blue-700">Cache Tozalash</span>
+          </button>
+          
+          <button
+            onClick={() => {
+              fetch('/api/v1/admin/system/optimize', { method: 'POST' })
+                .then(() => alert('Tizim optimallashtirildi'))
+                .catch(() => alert('Xatolik yuz berdi'));
+            }}
+            className="flex flex-col items-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
+          >
+            <Zap className="w-8 h-8 text-green-600 mb-2" />
+            <span className="text-sm font-medium text-green-700">Optimizatsiya</span>
+          </button>
+          
+          <button
+            onClick={() => {
+              fetch('/api/v1/admin/database/backup', { method: 'POST' })
+                .then(() => alert('Backup yaratildi'))
+                .catch(() => alert('Xatolik yuz berdi'));
+            }}
+            className="flex flex-col items-center p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors"
+          >
+            <Server className="w-8 h-8 text-purple-600 mb-2" />
+            <span className="text-sm font-medium text-purple-700">Database Backup</span>
+          </button>
+          
+          <button
+            onClick={() => window.location.reload()}
+            className="flex flex-col items-center p-4 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors"
+          >
+            <Activity className="w-8 h-8 text-orange-600 mb-2" />
+            <span className="text-sm font-medium text-orange-700">Yangilash</span>
+          </button>
         </div>
       </div>
     </div>

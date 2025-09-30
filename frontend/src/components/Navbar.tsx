@@ -142,13 +142,13 @@ export default function Navbar() {
             ) : (
               <div className="flex items-center space-x-4">
                 <Link
-                  href="/auth/login"
+                  href="/login"
                   className="text-gray-700 hover:text-indigo-600 font-medium"
                 >
                   Kirish
                 </Link>
                 <Link
-                  href="/auth/register"
+                  href="/register"
                   className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
                 >
                   Ro'yxatdan o'tish
@@ -257,14 +257,14 @@ export default function Navbar() {
               ) : (
                 <div className="space-y-2 pt-4 border-t border-gray-200">
                   <Link
-                    href="/auth/login"
+                    href="/login"
                     className="block px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg"
                     onClick={() => setIsOpen(false)}
                   >
                     Kirish
                   </Link>
                   <Link
-                    href="/auth/register"
+                    href="/register"
                     className="block px-3 py-2 bg-indigo-600 text-white rounded-lg text-center"
                     onClick={() => setIsOpen(false)}
                   >
