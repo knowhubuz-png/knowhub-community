@@ -1,7 +1,7 @@
 import { api } from '@/lib/api';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { Trophy, Award, FileText } from 'lucide-react';
+import { Trophy, Award, FileText, Calendar, MapPin, Globe, Github, Linkedin } from 'lucide-react';
 
 interface Badge {
   id: number;

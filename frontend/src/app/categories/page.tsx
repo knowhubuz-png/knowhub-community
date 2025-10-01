@@ -1,7 +1,4 @@
-'use client';
-import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import LoadingSpinner from '@/components/LoadingSpinner';
 import { Folder, FileText, TrendingUp, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
@@ -24,14 +21,8 @@ async function getCategories() {
   }
 }
 
-export default function CategoriesPage() {
-  const { data: categories, isLoading, error } = useQuery({
-    queryKey: ['categories'],
-    queryFn: getCategories,
-    retry: 1,
-  });
-
-  if (isLoading) return <LoadingSpinner />;
+export default async function CategoriesPage() {
+  const categories = await getCategories();
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

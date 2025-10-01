@@ -21,7 +21,6 @@
     "react-hot-toast": "^2.4.1",
     "react-intersection-observer": "^9.13.1",
     "react-markdown": "^10.1.0",
-    "rehype-prism-plus": "^2.0.1",
     "remark-gfm": "^4.0.1",
     "tinymce": "^6.8.2",
     "zustand": "^5.0.8"

@@ -79,8 +79,8 @@ export default function WikiArticlePage() {
             >
               <ArrowLeft className="w-5 h-5 mr-2" />
               Wiki ga qaytish
-            </Link>
-            {user && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+            <div className="prose prose-lg max-w-none prose-headings:font-semibold prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg prose-p:text-gray-700 prose-code:bg-gray-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-pre:p-4 prose-pre:rounded-lg prose-pre:overflow-x-auto">
               <Link
                 href={`/wiki/${slug}/edit`}
                 className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -126,7 +126,6 @@ export default function WikiArticlePage() {
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               rehypePlugins={[rehypePrismPlus]}
-              className="prose-headings:font-semibold prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg prose-p:text-gray-700 prose-code:bg-gray-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-pre:p-4 prose-pre:rounded-lg prose-pre:overflow-x-auto"
             >
               {article.content_markdown}
             </ReactMarkdown>
