@@ -1,7 +1,7 @@
 import { api } from '@/lib/api';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Calendar, User, Edit, BookOpen } from 'lucide-react';
+import { ArrowLeft, Calendar, User, CreditCard as Edit, BookOpen } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
