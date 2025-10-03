@@ -24,6 +24,35 @@ interface WikiArticle {
   };
 }
 
+interface WikiListItem {
+  id: number;
+  slug: string;
+}
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+
+// Static params for SSG/export. If the API is down at build time, return [] so the build doesn't fail.
+export async function generateStaticParams(): Promise<Array<{ slug: string }>> {
+  try {
+    const res = await fetch(`${API_URL}/wiki`, { cache: 'no-store' });
+    if (!res.ok) {
+      console.error('generateStaticParams: failed to fetch wiki list', res.status);
+      return [];
+    }
+    const payload = await res.json();
+    const data: WikiListItem[] = Array.isArray(payload?.data)
+      ? payload.data
+      : Array.isArray(payload)
+      ? payload
+      : [];
+
+    return data.map((item) => ({ slug: item.slug }));
+  } catch (err) {
+    console.error('generateStaticParams fetch failed', err);
+    return [];
+  }
+}
+
 async function getWikiArticle(slug: string): Promise<WikiArticle> {
   try {
     const res = await api.get(`/wiki/${slug}`);
@@ -36,8 +65,8 @@ async function getWikiArticle(slug: string): Promise<WikiArticle> {
   }
 }
 
-export default async function WikiArticlePage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
+export default async function WikiArticlePage({ params }: { params: { slug: string } }) {
+  const { slug } = params;
   const article = await getWikiArticle(slug);
 
   return (

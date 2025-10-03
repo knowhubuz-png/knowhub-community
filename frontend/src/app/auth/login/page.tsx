@@ -42,7 +42,7 @@ export default function LoginPage() {
           <h2 className="text-3xl font-bold text-gray-900">Hisobingizga kiring</h2>
           <p className="mt-2 text-gray-600">
             Yoki{' '}
-            <Link href="/register" className="text-indigo-600 hover:text-indigo-500">
+            <Link href="/auth/register" className="text-indigo-600 hover:text-indigo-500">
               yangi hisob yarating
             </Link>
           </p>

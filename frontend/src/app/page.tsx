@@ -99,7 +99,7 @@ export default function HomePage() {
                 Postlarni Ko'rish
               </Link>
               <Link
-                href="/register"
+                href="/auth/register"
                 className="inline-flex items-center px-8 py-3 bg-yellow-500 text-gray-900 rounded-lg font-semibold hover:bg-yellow-400 transition-colors"
               >
                 <Users className="w-5 h-5 mr-2" />
@@ -310,7 +310,7 @@ export default function HomePage() {
                   <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                   <p className="text-gray-600">Hozircha postlar yo'q</p>
                   <Link
-                    href="/register"
+                    href="/auth/register"
                     className="inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors mt-4"
                   >
                     Birinchi post yozing
@@ -464,7 +464,7 @@ export default function HomePage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
-              href="/register"
+              href="/auth/register"
               className="inline-flex items-center px-8 py-3 bg-white text-indigo-600 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
             >
               <Zap className="w-5 h-5 mr-2" />
