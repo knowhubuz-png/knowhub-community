@@ -28,7 +28,26 @@ class EmailAuthController extends Controller
         ]);
 
         $token = $user->createToken('auth')->plainTextToken;
-        return response()->json(['token'=>$token,'user'=>$user]);
+
+        // Load relationships
+        $user->load('level', 'badges');
+
+        return response()->json([
+            'token' => $token,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'username' => $user->username,
+                'email' => $user->email,
+                'avatar_url' => $user->avatar_url,
+                'bio' => $user->bio,
+                'xp' => $user->xp,
+                'is_admin' => $user->is_admin ?? false,
+                'is_banned' => $user->is_banned ?? false,
+                'level' => $user->level,
+                'badges' => $user->badges,
+            ]
+        ]);
     }
 
     public function login(Request $req)
@@ -38,8 +57,28 @@ class EmailAuthController extends Controller
         if (!$user || !Hash::check($data['password'],$user->password)) {
             return response()->json(['message'=>'Invalid credentials'], 422);
         }
+
         $token = $user->createToken('auth')->plainTextToken;
-        return response()->json(['token'=>$token,'user'=>$user]);
+
+        // Load relationships
+        $user->load('level', 'badges');
+
+        return response()->json([
+            'token' => $token,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'username' => $user->username,
+                'email' => $user->email,
+                'avatar_url' => $user->avatar_url,
+                'bio' => $user->bio,
+                'xp' => $user->xp,
+                'is_admin' => $user->is_admin,
+                'is_banned' => $user->is_banned,
+                'level' => $user->level,
+                'badges' => $user->badges,
+            ]
+        ]);
     }
 
     public function logout(Request $req)

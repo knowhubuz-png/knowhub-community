@@ -1,11 +1,13 @@
-<?
+<?php
 return [
 
     'paths' => ['api/*', 'sanctum/csrf-cookie'],
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['http://localhost:3000'], // Next.js dev server
+    'allowed_origins' => explode(',', env('CORS_ALLOWED_ORIGINS', 'http://localhost:3000,http://localhost:8000,https://your-domain.com')),
+
+    'allowed_origins_patterns' => [],
 
     'allowed_headers' => ['*'],
 

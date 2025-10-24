@@ -7,7 +7,28 @@ use Illuminate\Http\Request;
 
 class ProfileController extends Controller
 {
-    public function me(Request $req) { return $req->user()->only(['id','name','username','avatar_url','xp','bio']); }
+    public function me(Request $req)
+    {
+        $user = $req->user();
+        $user->load('level', 'badges');
+
+        return response()->json([
+            'id' => $user->id,
+            'name' => $user->name,
+            'username' => $user->username,
+            'email' => $user->email,
+            'avatar_url' => $user->avatar_url,
+            'bio' => $user->bio,
+            'xp' => $user->xp,
+            'is_admin' => $user->is_admin,
+            'is_banned' => $user->is_banned,
+            'level' => $user->level,
+            'badges' => $user->badges,
+            'website_url' => $user->website_url,
+            'github_url' => $user->github_url,
+            'linkedin_url' => $user->linkedin_url,
+        ]);
+    }
 
     public function update(Request $req)
     {

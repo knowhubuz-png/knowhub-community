@@ -44,14 +44,14 @@ export default function LeaderboardPage() {
     }
   };
 
-  const getStatValue = (user: User, type: string) => {
+  const getStatValue = (user: any, type: string) => {
     switch (type) {
       case 'xp':
-        return user.xp;
+        return user.xp || 0;
       case 'posts':
-        return user.stats?.posts_count || 0;
+        return user.posts_count || user.stats?.posts_count || 0;
       case 'followers':
-        return user.stats?.followers_count || 0;
+        return user.followers_count || user.stats?.followers_count || 0;
       default:
         return 0;
     }
@@ -187,7 +187,7 @@ export default function LeaderboardPage() {
         </div>
         
         <div className="divide-y divide-gray-200">
-          {users?.map((user: User, index: number) => (
+          {users?.map((user: any, index: number) => (
             <div key={user.id} className="px-6 py-4 hover:bg-gray-50 transition-colors">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
