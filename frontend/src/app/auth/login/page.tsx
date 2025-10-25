@@ -1,11 +1,11 @@
 'use client';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/providers/AuthProvider';
-import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, AlertCircle } from 'lucide-react';
 
-export default function LoginPage() {
+function LoginForm() {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -13,9 +13,17 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  
-  const { login } = useAuth();
+
+  const { login, user, loading: authLoading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get('redirect') || '/';
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.push(redirect);
+    }
+  }, [user, authLoading, redirect, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,9 +32,11 @@ export default function LoginPage() {
 
     try {
       await login(formData.email, formData.password);
-      router.push('/');
+      router.push(redirect);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Kirish jarayonida xatolik yuz berdi');
+      console.error('Login error:', err);
+      const errorMsg = err.response?.data?.message || err.message || 'Kirish jarayonida xatolik yuz berdi';
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -50,8 +60,11 @@ export default function LoginPage() {
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-              {error}
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="flex items-start">
+                <AlertCircle className="w-5 h-5 text-red-600 mr-2 flex-shrink-0" />
+                <p className="text-sm text-red-700">{error}</p>
+              </div>
             </div>
           )}
 
@@ -133,7 +146,7 @@ export default function LoginPage() {
 
           <div className="mt-6 grid grid-cols-2 gap-3">
             <a
-              href={`${process.env.NEXT_PUBLIC_API_URL}/auth/google/redirect`}
+              href={`${process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || 'http://localhost:8000'}/api/v1/auth/google/redirect`}
               className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -146,7 +159,7 @@ export default function LoginPage() {
             </a>
 
             <a
-              href={`${process.env.NEXT_PUBLIC_API_URL}/auth/github/redirect`}
+              href={`${process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || 'http://localhost:8000'}/api/v1/auth/github/redirect`}
               className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors"
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -158,5 +171,17 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-gray-600">Yuklanmoqda...</div>
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }
